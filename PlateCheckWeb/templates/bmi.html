@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PlateCheck BMI Tracker</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+        <style>
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{font-family:Poppins,sans-serif;background:#141414;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:30px}
+            .container{width:100%;max-width:1100px;display:grid;grid-template-columns:1fr 1fr;gap:25px}
+            .card{background:#1b1b1b;border:1px solid #2c2c2c;border-radius:28px;padding:30px}
+            h1{font-size:42px;margin-bottom:20px}
+            label{display:block;margin-bottom:8px;color:#b5b5b5}
+            input{width:100%;padding:15px;border-radius:14px;border:1px solid #333;background:#111;color:#fff;margin-bottom:18px}
+            button{width:100%;padding:15px;border:none;border-radius:14px;background:#22c55e;color:#fff;font-weight:700;cursor:pointer}
+            .result{text-align:center;margin-top:25px;padding:25px;border-radius:20px;background:#111}
+            .bmi{font-size:72px;font-weight:800}
+            .status{font-size:22px;margin-top:10px}
+            .chart-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #2c2c2c}
+            .chart-row:last-child{border-bottom:none}
+            .range{color:#22c55e;font-weight:600}
+        </style>
+    </head>
+    <body>
+    <div class="container">
+        <div class="card">
+            <h1>BMI Tracker</h1>
+            <label>Height (cm)</label>
+            <input id="height" type="number" placeholder="Enter height">
+            <label>Weight (kg)</label>
+            <input id="weight" type="number" placeholder="Enter weight">
+            <button onclick="calculateBMI()">Calculate BMI</button>
+            <div class="result">
+                <div class="bmi" id="bmi">--</div>
+                <div class="status" id="status">Enter your details</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>BMI Chart</h1>
+            <div class="chart-row"><span>Underweight</span><span class="range">&lt; 18.5</span></div>
+            <div class="chart-row"><span>Normal Weight</span><span class="range">18.5 - 24.9</span></div>
+            <div class="chart-row"><span>Overweight</span><span class="range">25 - 29.9</span></div>
+            <div class="chart-row"><span>Obesity Class I</span><span class="range">30 - 34.9</span></div>
+            <div class="chart-row"><span>Obesity Class II</span><span class="range">35 - 39.9</span></div>
+            <div class="chart-row"><span>Obesity Class III</span><span class="range">40+</span></div>
+        </div>
+    </div>
+
+    <script>
+    function calculateBMI(){
+        let h=parseFloat(document.getElementById('height').value)/100;
+        let w=parseFloat(document.getElementById('weight').value);
+        if(!h||!w)return;
+        let bmi=(w/(h*h)).toFixed(1);
+        document.getElementById('bmi').innerText=bmi;
+        let status='';
+        if(bmi<18.5) status='Underweight';
+        else if(bmi<25) status='Normal Weight';
+        else if(bmi<30) status='Overweight';
+        else if(bmi<35) status='Obesity Class I';
+        else if(bmi<40) status='Obesity Class II';
+        else status='Obesity Class III';
+        document.getElementById('status').innerText=status;
+    }
+    </script>
+    </body>
+</html>

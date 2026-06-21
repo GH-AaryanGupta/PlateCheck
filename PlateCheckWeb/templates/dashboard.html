@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateCheck Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+    </style>
+</head>
+<body id="body" class="bg-[#0d0f10] text-gray-300 min-h-screen p-4 md:p-6 flex flex-col justify-center items-center relative">
+
+    {# Pass server-side data to JS #}
+    <script>
+        const totals = {
+            cal:     {{ today_log.cal_total }},
+            protein: {{ today_log.protein_total }},
+            carbs:   {{ today_log.carbs_total }},
+            fats:    {{ today_log.fats_total }},
+            fiber:   {{ today_log.fiber_total }},
+        };
+        const targets = {
+            cal:     {{ today_log.cal_target }},
+            protein: {{ today_log.protein_target }},
+            carbs:   {{ today_log.carbs_target }},
+            fats:    {{ today_log.fats_target }},
+            fiber:   {{ today_log.fiber_target }},
+        };
+        const csrfToken = "{{ csrf_token }}";
+        const logMealUrl = "{% url 'log_meal' %}";
+    </script>
+
+    {# Django messages — auto-dismiss after 3 seconds #}
+    {% if messages %}
+    <div id="django-messages" class="w-full max-w-6xl mb-3">
+        {% for message in messages %}
+            <div class="px-4 py-2 rounded-lg text-sm mb-2
+                {% if message.tags == 'error' %}bg-red-900/50 text-red-300
+                {% elif message.tags == 'success' %}bg-emerald-900/50 text-emerald-300
+                {% else %}bg-blue-900/50 text-blue-300{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    <script>setTimeout(() => { const m = document.getElementById('django-messages'); if(m){ m.style.transition='opacity 0.5s'; m.style.opacity='0'; setTimeout(()=>m.remove(),500); }}, 3000);</script>
+    {% endif %}
+
+    <div id="dashboardCard" class="w-full max-w-6xl bg-[#121416] border border-[#1f2226] rounded-xl p-6 shadow-2xl transition-colors duration-300">
+
+        <header id="header" class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1f2226] pb-4 mb-6 gap-4">
+            <div class="flex items-center gap-2">
+                <span id="logoText" class="text-white font-bold text-xl tracking-tight">🍽️ PlateCheck</span>
+            </div>
+            <nav class="flex items-center gap-6 text-sm font-medium text-gray-400">
+                <a href="{% url 'home' %}" class="flex items-center gap-1.5 hover:text-emerald-500 transition"><i data-lucide="home" class="w-4 h-4"></i>Home</a>
+                <a href="{% url 'bmi' %}" class="flex items-center gap-1.5 hover:text-emerald-500 transition"><i data-lucide="Calculator" class="w-4 h-4"></i>BMI Calculator</a>
+                <a href="{% url 'chatbot' %}" class="flex items-center gap-1.5 hover:text-emerald-500 transition"><i data-lucide="message-square" class="w-4 h-4"></i> Chatbot</a>
+                <a href="#" onclick="window.location.href={% url 'image_upload' %}" class="flex items-center gap-1.5 hover:text-emerald-500 transition"><i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Meal</a>
+                <a href="{% url 'profile' %}" class="flex items-center gap-1.5 hover:text-emerald-500 transition"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
+                <form method="post" action="{% url 'logout' %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center gap-1.5 hover:text-rose-400 transition bg-transparent border-none cursor-pointer text-sm font-medium text-gray-400">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
+                    </button>
+                </form>
+            </nav>
+        </header>
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <h1 id="mainTitle" class="text-white text-2xl font-bold tracking-tight">My Dashboard</h1>
+                <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
+                    <span>{{ today_log.date|date:"l, d M Y" }}</span>
+                    <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                    <span>Goal: {{ profile.get_goal_display }}</span>
+                    <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                    <span>{{ profile.get_diet_type_display }}</span>
+                </div>
+            </div>
+        </div>
+
+        {# Macro summary cards #}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+            <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-4 flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-medium text-gray-400 mb-2">
+                        <span class="p-1.5 bg-emerald-500/10 text-emerald-500 rounded-lg"><i data-lucide="flame" class="w-4 h-4"></i></span>
+                        Calories
+                    </div>
+                    <div class="text-2xl font-bold text-white tracking-tight" id="cal-count">{{ today_log.cal_total }}</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">of {{ today_log.cal_target }} target</div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-[#262a30] h-1.5 rounded-full overflow-hidden">
+                        <div id="cal-progress" class="bg-emerald-500 h-1.5 rounded-full" style="width: {% widthratio today_log.cal_total today_log.cal_target 100 %}%"></div>
+                    </div>
+                    <div id="cal-pct" class="text-[10px] font-semibold text-emerald-500 mt-1 text-center">{% widthratio today_log.cal_total today_log.cal_target 100 %}%</div>
+                </div>
+            </div>
+
+            <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-4 flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-medium text-gray-400 mb-2">
+                        <span class="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-lg"><i data-lucide="dumbbell" class="w-4 h-4"></i></span>
+                        Protein
+                    </div>
+                    <div class="text-2xl font-bold text-white tracking-tight" id="protein-count">{{ today_log.protein_total }}g</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">of {{ today_log.protein_target }}g target</div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-[#262a30] h-1.5 rounded-full overflow-hidden">
+                        <div id="protein-progress" class="bg-indigo-500 h-1.5 rounded-full" style="width: {% widthratio today_log.protein_total today_log.protein_target 100 %}%"></div>
+                    </div>
+                    <div id="protein-pct" class="text-[10px] font-semibold text-indigo-400 mt-1 text-center">{% widthratio today_log.protein_total today_log.protein_target 100 %}%</div>
+                </div>
+            </div>
+
+            <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-4 flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-medium text-gray-400 mb-2">
+                        <span class="p-1.5 bg-amber-500/10 text-amber-500 rounded-lg"><i data-lucide="wheat" class="w-4 h-4"></i></span>
+                        Carbs
+                    </div>
+                    <div class="text-2xl font-bold text-white tracking-tight" id="carbs-count">{{ today_log.carbs_total }}g</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">of {{ today_log.carbs_target }}g target</div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-[#262a30] h-1.5 rounded-full overflow-hidden">
+                        <div id="carbs-progress" class="bg-amber-500 h-1.5 rounded-full" style="width: {% widthratio today_log.carbs_total today_log.carbs_target 100 %}%"></div>
+                    </div>
+                    <div id="carbs-pct" class="text-[10px] font-semibold text-amber-500 mt-1 text-center">{% widthratio today_log.carbs_total today_log.carbs_target 100 %}%</div>
+                </div>
+            </div>
+
+            <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-4 flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-medium text-gray-400 mb-2">
+                        <span class="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg"><i data-lucide="droplet" class="w-4 h-4"></i></span>
+                        Fats
+                    </div>
+                    <div class="text-2xl font-bold text-white tracking-tight" id="fats-count">{{ today_log.fats_total }}g</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">of {{ today_log.fats_target }}g target</div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-[#262a30] h-1.5 rounded-full overflow-hidden">
+                        <div id="fats-progress" class="bg-blue-500 h-1.5 rounded-full" style="width: {% widthratio today_log.fats_total today_log.fats_target 100 %}%"></div>
+                    </div>
+                    <div id="fats-pct" class="text-[10px] font-semibold text-blue-400 mt-1 text-center">{% widthratio today_log.fats_total today_log.fats_target 100 %}%</div>
+                </div>
+            </div>
+
+            <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-4 flex flex-col justify-between col-span-2 sm:col-span-1 transition-colors">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-medium text-gray-400 mb-2">
+                        <span class="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg"><i data-lucide="heart" class="w-4 h-4"></i></span>
+                        Fiber
+                    </div>
+                    <div class="text-2xl font-bold text-white tracking-tight" id="fiber-count">{{ today_log.fiber_total }}g</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">of {{ today_log.fiber_target }}g target</div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-[#262a30] h-1.5 rounded-full overflow-hidden">
+                        <div id="fiber-progress" class="bg-rose-500 h-1.5 rounded-full" style="width: {% widthratio today_log.fiber_total today_log.fiber_target 100 %}%"></div>
+                    </div>
+                    <div id="fiber-pct" class="text-[10px] font-semibold text-rose-400 mt-1 text-center">{% widthratio today_log.fiber_total today_log.fiber_target 100 %}%</div>
+                </div>
+            </div>
+        </div>
+
+        {# Meals journal #}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-5 transition-colors">
+                <div class="flex items-center gap-2 text-sm font-semibold text-white mb-4">
+                    <i data-lucide="utensils" class="w-5 h-5 text-emerald-500"></i>
+                    Today's Meals
+                </div>
+                <div id="meals-list" class="divide-y divide-[#24282e]">
+                    {% for meal in meals %}
+                        <div class="flex items-center justify-between py-3">
+                            <div class="flex items-center gap-3">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <i data-lucide="utensils" class="w-4 h-4 text-emerald-500"></i>
+                                <span class="text-xs font-medium text-white">{{ meal.name }}</span>
+                            </div>
+                            <div class="flex gap-12 text-xs">
+                                <span class="text-gray-500">{{ meal.logged_at|date:"H:i" }}</span>
+                                <span class="text-gray-300 font-medium w-16 text-right">{{ meal.calories }} cal</span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-xs text-gray-500 py-4 text-center">No meals logged today yet.</div>
+                    {% endfor %}
+                </div>
+                <div class="flex justify-between items-center mt-4 pt-3 border-t border-[#262a30] text-xs font-semibold">
+                    <span class="text-gray-400">Total</span>
+                    <span id="total-cal-summary" class="text-emerald-500 font-bold">{{ today_log.cal_total }} cal</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col justify-between gap-4">
+                <div class="card-item bg-[#1a1d20] border border-[#24282e] rounded-xl p-5 flex-1 transition-colors">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-white mb-4">
+                        <i data-lucide="crown" class="w-5 h-5 text-emerald-500"></i>
+                        Streak
+                    </div>
+                    <div class="text-4xl font-extrabold text-emerald-500 tracking-tight">{{ profile.streak_days }}</div>
+                    <div class="text-[11px] text-gray-400 font-medium mt-1">days in a row</div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="openUploadModal()" class="flex-1 flex items-center justify-center gap-2 border border-[#24282e] bg-transparent hover:bg-[#1f2226] font-medium text-xs text-gray-300 py-3 rounded-xl transition">
+                        <i data-lucide="upload" class="w-4 h-4"></i> Log Meal
+                    </button>
+                    <a href="{% url 'chatbot' %}" class="flex-1 flex items-center justify-center gap-2 bg-[#22c55e] hover:bg-[#1ebd54] font-semibold text-xs text-black py-3 rounded-xl transition shadow-md">
+                        <i data-lucide="message-square-code" class="w-4 h-4"></i> Ask AI Coach
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Meal log modal — posts to Django #}
+    <div id="uploadModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-[#121416] border border-[#24282e] p-6 rounded-xl w-full max-w-sm text-gray-300">
+            <h3 class="text-white text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="text-emerald-500"></i>Log New Meal</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-gray-400">Meal Title</label>
+                    <input id="in-name" type="text" placeholder="e.g., Protein Shake, Avocado Toast" class="w-full bg-[#1a1d20] border border-[#262930] rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-gray-400">Calories (kcal)</label>
+                        <input id="in-cal" type="number" placeholder="300" class="w-full bg-[#1a1d20] border border-[#262930] rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-gray-400">Protein (g)</label>
+                        <input id="in-pro" type="number" placeholder="15" class="w-full bg-[#1a1d20] border border-[#262930] rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-gray-400">Carbs (g)</label>
+                        <input id="in-carb" type="number" placeholder="35" class="w-full bg-[#1a1d20] border border-[#262930] rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-gray-400">Fats (g)</label>
+                        <input id="in-fat" type="number" placeholder="8" class="w-full bg-[#1a1d20] border border-[#262930] rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-gray-400">Fiber (g)</label>
+                    <input id="in-fiber" type="number" placeholder="4" class="w-full bg-[#1a1d20] border border-[#262930] rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+            <div class="flex gap-2 mt-5">
+                <button onclick="closeUploadModal()" class="flex-1 bg-gray-800 text-gray-300 font-medium py-2 rounded-lg text-xs hover:bg-gray-700 transition">Cancel</button>
+                <button onclick="submitMeal()" class="flex-1 bg-[#22c55e] text-black font-bold py-2 rounded-lg text-xs hover:bg-[#1ebd54] transition">Add Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDarkMode = true;
+
+        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        function closeUploadModal() { document.getElementById('uploadModal').style.display = 'none'; }
+
+        function submitMeal() {
+            const name  = document.getElementById('in-name').value || "Unnamed Meal";
+            const cal   = parseInt(document.getElementById('in-cal').value)   || 0;
+            const pro   = parseInt(document.getElementById('in-pro').value)   || 0;
+            const carb  = parseInt(document.getElementById('in-carb').value)  || 0;
+            const fat   = parseInt(document.getElementById('in-fat').value)   || 0;
+            const fiber = parseInt(document.getElementById('in-fiber').value) || 0;
+
+            // POST to Django to persist the meal
+            fetch(logMealUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: new URLSearchParams({
+                    meal_name: name,
+                    calories:  cal,
+                    protein:   pro,
+                    carbs:     carb,
+                    fats:      fat,
+                    fiber:     fiber,
+                })
+            }).then(response => {
+                if (response.ok) {
+                    // Update JS totals and DOM optimistically
+                    totals.cal     += cal;
+                    totals.protein += pro;
+                    totals.carbs   += carb;
+                    totals.fats    += fat;
+                    totals.fiber   += fiber;
+                    updateDashboardDOM();
+
+                    // Append meal row to journal
+                    const mealsList = document.getElementById('meals-list');
+                    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between py-3";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span class="text-xs font-medium text-white">${name}</span>
+                        </div>
+                        <div class="flex gap-12 text-xs">
+                            <span class="text-gray-500">${currentTime}</span>
+                            <span class="text-gray-300 font-medium w-16 text-right">${cal} cal</span>
+                        </div>`;
+                    mealsList.appendChild(row);
+
+                    // Clear inputs and close
+                    ['in-name','in-cal','in-pro','in-carb','in-fat','in-fiber'].forEach(id => document.getElementById(id).value = '');
+                    closeUploadModal();
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        function updateDashboardDOM() {
+            const cPct    = Math.round((totals.cal     / targets.cal)     * 100);
+            const pPct    = Math.round((totals.protein / targets.protein) * 100);
+            const carbPct = Math.round((totals.carbs   / targets.carbs)   * 100);
+            const fPct    = Math.round((totals.fats    / targets.fats)    * 100);
+            const fibPct  = Math.round((totals.fiber   / targets.fiber)   * 100);
+
+            document.getElementById('cal-count').innerText     = totals.cal.toLocaleString();
+            document.getElementById('protein-count').innerText = totals.protein + 'g';
+            document.getElementById('carbs-count').innerText   = totals.carbs + 'g';
+            document.getElementById('fats-count').innerText    = totals.fats + 'g';
+            document.getElementById('fiber-count').innerText   = totals.fiber + 'g';
+
+            document.getElementById('cal-progress').style.width     = `${Math.min(cPct,    100)}%`;
+            document.getElementById('protein-progress').style.width = `${Math.min(pPct,    100)}%`;
+            document.getElementById('carbs-progress').style.width   = `${Math.min(carbPct, 100)}%`;
+            document.getElementById('fats-progress').style.width    = `${Math.min(fPct,    100)}%`;
+            document.getElementById('fiber-progress').style.width   = `${Math.min(fibPct,  100)}%`;
+
+            document.getElementById('cal-pct').innerText     = cPct + '%';
+            document.getElementById('protein-pct').innerText = pPct + '%';
+            document.getElementById('carbs-pct').innerText   = carbPct + '%';
+            document.getElementById('fats-pct').innerText    = fPct + '%';
+            document.getElementById('fiber-pct').innerText   = fibPct + '%';
+
+            document.getElementById('total-cal-summary').innerText = `${totals.cal.toLocaleString()} cal`;
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>

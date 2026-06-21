@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>PlateCheck Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    <style>
+        body{font-family:Poppins,sans-serif;background:#0f172a;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+        .card{width:380px;background:#111827;padding:32px;border-radius:24px;color:white}
+        input{width:100%;padding:14px;margin:10px 0;border-radius:12px;border:1px solid #374151;background:#0b1220;color:white;box-sizing:border-box}
+        button{width:100%;padding:14px;border:none;border-radius:12px;background:#22c55e;color:white;font-weight:600;cursor:pointer}
+        h1{text-align:center;margin-bottom:8px}
+        .messages{margin-bottom:12px;padding:0}
+        .messages li{list-style:none;padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:13px;}
+        .messages .error{background:#3b1a1a;color:#f87171;}
+        .messages .success{background:#1a3b2a;color:#4ade80;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Login</h1>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

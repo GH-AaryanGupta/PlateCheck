@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateCheck - Complete Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Poppins,sans-serif;background:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:30px;}
+        .card{width:100%;max-width:800px;background:#111827;border:1px solid #2b3548;border-radius:28px;padding:35px;color:white;}
+        h1{text-align:center;margin-bottom:8px}
+        .sub{text-align:center;color:#9ca3af;margin-bottom:30px}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        input,select{width:100%;padding:14px;border-radius:12px;border:1px solid #374151;background:#0b1220;color:white;}
+        select option{background:#0b1220;}
+        .full{grid-column:1/-1}
+        .btn{width:100%;margin-top:25px;padding:15px;border:none;border-radius:14px;background:#22c55e;color:white;font-weight:600;font-size:16px;cursor:pointer;}
+        label{display:block;margin-bottom:6px;font-size:14px;color:#cbd5e1;}
+        .field{display:flex;flex-direction:column}
+
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Complete Your Profile</h1>
+        <p class="sub">Tell us about yourself</p>
+        <form method="post" action="{% url 'complete_profile' %}">
+            {% csrf_token %}
+            <div class="grid">
+                <div class="field">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" placeholder="Enter name" value="{{ profile.full_name }}">
+                </div>
+
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" value="{{ user.username }}" disabled>
+                </div>
+
+                <div class="field">
+                    <label>Age</label>
+                    <input type="number" name="age" placeholder="Age" value="{{ profile.age|default:'' }}">
+                </div>
+
+                <div class="field">
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if profile.gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="other" {% if profile.gender == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Height (cm)</label>
+                    <input type="number" name="height_cm" placeholder="Height" value="{{ profile.height_cm|default:'' }}">
+                </div>
+
+                <div class="field">
+                    <label>Weight (kg)</label>
+                    <input type="number" name="weight_kg" placeholder="Weight" value="{{ profile.weight_kg|default:'' }}">
+                </div>
+
+                <div class="field">
+                    <label>Target Weight (kg)</label>
+                    <input type="number" name="target_weight_kg" placeholder="Target Weight" value="{{ profile.target_weight_kg|default:'' }}">
+                </div>
+
+                <div class="field">
+                    <label>Goal</label>
+                    <select name="goal">
+                        <option value="lose_weight" {% if profile.goal == 'lose_weight' %}selected{% endif %}>Lose Weight</option>
+                        <option value="gain_weight" {% if profile.goal == 'gain_weight' %}selected{% endif %}>Gain Weight</option>
+                        <option value="build_muscle" {% if profile.goal == 'build_muscle' %}selected{% endif %}>Build Muscle</option>
+                        <option value="maintain_weight" {% if profile.goal == 'maintain_weight' %}selected{% endif %}>Maintain Weight</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Diet Type</label>
+                    <select name="diet_type">
+                        <option value="vegetarian" {% if profile.diet_type == 'vegetarian' %}selected{% endif %}>Vegetarian</option>
+                        <option value="non_vegetarian" {% if profile.diet_type == 'non_vegetarian' %}selected{% endif %}>Non-Vegetarian</option>
+                        <option value="vegan" {% if profile.diet_type == 'vegan' %}selected{% endif %}>Vegan</option>
+                        <option value="eggetarian" {% if profile.diet_type == 'eggetarian' %}selected{% endif %}>Eggetarian</option>
+                    </select>
+                </div>
+
+                <div class="field full">
+                    <label>Activity Level</label>
+                    <select name="activity_level">
+                        <option value="sedentary" {% if profile.activity_level == 'sedentary' %}selected{% endif %}>Sedentary</option>
+                        <option value="lightly_active" {% if profile.activity_level == 'lightly_active' %}selected{% endif %}>Lightly Active</option>
+                        <option value="moderately_active" {% if profile.activity_level == 'moderately_active' %}selected{% endif %}>Moderately Active</option>
+                        <option value="very_active" {% if profile.activity_level == 'very_active' %}selected{% endif %}>Very Active</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn" type="submit">Save Profile</button>
+        </form>
+    </div>
+</body>
+</html>
