@@ -442,6 +442,9 @@ def image_upload_view(request):
             Analyse this food image and estimate its nutritional content.
             If there are more than one object in the image, you estimate the collective content.
             Respond ONLY with a valid JSON object — no markdown, no explanation.
+            Try to tell the user what the food item in the image is.
+            If there are more than one food item in the image, try to give a collective name (ex. Indian Thali), \
+            else just give a generic name.
             If you do not see any food object to analyze, send back insight as "No food to analyze".
             Use this exact structure:
             {
