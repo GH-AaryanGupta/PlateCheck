@@ -12,7 +12,6 @@ PlateCheck lets users snap a photo of a meal and get an instant nutritional brea
 - **Ronnie AI** — a context-aware chatbot that knows your live profile, today's logged macros, and remaining calorie budget, so you don't have to repeat yourself every message
 - **Dashboard** — daily macro progress, meal journal, and a logging streak
 - **BMI calculator** — standalone quick-check tool, no data stored
-- **Admin panel** — full visibility into users, profiles, daily logs, uploaded images, and chat history
 
 ---
 
@@ -20,9 +19,23 @@ PlateCheck lets users snap a photo of a meal and get an instant nutritional brea
 
 | Component           | Technology                          |
 |---------------------|-------------------------------------|
-| Backend framework   | Django 6.0                          |
-| Database            | PostgreSQL (production)             |
+| Backend framework   | Django Web Framework                |
+| Database            | PostgreSQL                          |
 | AI inference        | Groq API                            |
 | Vision model        | `qwen/qwen3.6-27b`                  |
 | Chat model          | `openai/gpt-oss-120b`               |
 | Image handling      | Pillow                              |
+
+## Workflow
+
+```mermaid
+flowchart TD
+A["User"] --> |User Info|E["Dashboard"]
+E --> |User Info|B["PostgreSQL Database"]
+A --> |Request|C["Image Analysis"]
+C --> |Images|B
+C --> |Response|A
+A <--> |Advice|D["Ronnie AI (Chatbot)"]
+E --> |User Info|D
+D <--> |Chat History|B
+```
