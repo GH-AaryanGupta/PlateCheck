@@ -23,6 +23,6 @@ PlateCheck lets users snap a photo of a meal and get an instant nutritional brea
 | Backend framework   | Django 6.0                          |
 | Database            | PostgreSQL (production)             |
 | AI inference        | Groq API                            |
-| Vision model        | `meta-llama/llama-4-scout-17b`      |
-| Chat model          | `llama-3.3-70b-versatile`           |
+| Vision model        | `qwen/qwen3.6-27b`                  |
+| Chat model          | `openai/gpt-oss-120b`               |
 | Image handling      | Pillow                              |

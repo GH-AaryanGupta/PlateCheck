@@ -465,7 +465,7 @@ def image_upload_view(request):
             mime_type  = uploaded_file.content_type
 
             response = GROQ_CLIENT.chat.completions.create(
-                model='meta-llama/llama-4-scout-17b-16e-instruct',
+                model='qwen/qwen3.6-27b',
                 messages=[
                     {
                         'role': 'user',
@@ -635,7 +635,7 @@ tell them that it won't work and they should focus on their diet still.
         # ------------------------------------------------------------------
         try:
             response = GROQ_CLIENT.chat.completions.create(
-                model='llama-3.3-70b-versatile',
+                model='openai/gpt-oss-120b',
                 messages=[
                     {'role': 'system', 'content': system_prompt},
                     *history_for_model,
